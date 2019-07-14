@@ -30,7 +30,7 @@ namespace WheelMovies.Controllers
         public async Task<ActionResult<IEnumerable<MoviesResponse>>> Get()
         {
             var movies = await movieService.GetTop5MoviesAsync();
-            if (movies == null || !movies.Any())
+            if (!movies.Any())
                 return NotFound("No movies found.");
 
             return Ok(movies);
@@ -40,9 +40,13 @@ namespace WheelMovies.Controllers
         [HttpGet("user/{userId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MoviesResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<MoviesResponse>>> Get(int userId)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<MoviesResponse>>> Get(int? userId)
         {
-            var movies = await movieService.GetTop5MmoviesForUserAsync(userId);
+            if (!userId.HasValue)
+                return BadRequest("User id not specified in the request.");
+
+            var movies = await movieService.GetTop5MmoviesForUserAsync(userId.Value);
             if (!movies.Any())
                 return NotFound("No movies found");
 
@@ -53,12 +57,20 @@ namespace WheelMovies.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MoviesResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<MoviesResponse>>> Post([FromBody] GetMoviesByCriteriaRequest request)
         {
             var movies = await movieService.GetMoviesByCriteriaAsync(request);
-            if (!movies.Any())
+            if (movies.Status == ResponseStatus.Invalid)
+                return BadRequest("Invalid criteria");
+
+            if (!movies.Movies.Any())
                 return NotFound("No movies found");
-            return Ok(movies);
+
+            if (movies.Status == ResponseStatus.Fail)
+                return new StatusCodeResult(500);
+
+            return Ok(movies.Movies);
         }
 
         // PUT api/movies/rating/2
@@ -69,13 +81,13 @@ namespace WheelMovies.Controllers
         public async Task<ActionResult> Put(int movieId, [FromBody] AddUpdateUserRatingRequest request)
         {
             var status = await movieService.AddOrUpdateUserRatingForMovieAsync(movieId, request);
-            if (status == AddUpdateStatus.MovieOrUserNotFound)
+            if (status == ResponseStatus.NotFound)
                 return NotFound("Movie or User not found");
 
-            if (status == AddUpdateStatus.InvalidRating)
+            if (status == ResponseStatus.Invalid)
                 return BadRequest("Invalid rating. Must be b/w 1 and 5");
 
-            if (status == AddUpdateStatus.Fail)
+            if (status == ResponseStatus.Fail)
                 return new StatusCodeResult(500);
 
             return Ok();

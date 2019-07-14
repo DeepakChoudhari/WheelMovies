@@ -23,17 +23,24 @@ namespace WheelMovies.Business.Implementation
             this.logger = logger;
         }
 
-        public async Task<IEnumerable<MoviesResponse>> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request)
+        public async Task<GetMoviesByCriteriaResponse> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request)
         {
             try
             {
+                if (!request.Validate())
+                    return new GetMoviesByCriteriaResponse
+                    {
+                        Status = ResponseStatus.Invalid,
+                        Movies = Enumerable.Empty<MoviesResponse>()
+                    };
+
                 var movies = await this.moviesRepository.Movies
                     .Include(m => m.MovieGenre)
                     .ThenInclude(navigationPropertyPath: mg => mg.Genre)
                     .Include(m => m.MovieRating)
                     .Where(m => m.Title.Equals(request.Title, StringComparison.InvariantCultureIgnoreCase)
-                             || m.YearOfRelease == request.YearOfRelease
-                             || m.RunningTime == request.RunningTime)
+                             || m.YearOfRelease == request.YearOfRelease.Value
+                             || m.RunningTime == request.RunningTime.Value)
                     .Select(m =>
                     new MoviesResponse
                     {
@@ -45,12 +52,20 @@ namespace WheelMovies.Business.Implementation
                         AverageRating = Average(m.MovieRating)
                     }).ToListAsync();
 
-                return movies;
+                return new GetMoviesByCriteriaResponse
+                {
+                    Status = ResponseStatus.Success,
+                    Movies = movies
+                };
             }
             catch (DbException dbException)
             {
-                logger.LogError(dbException, $"Error occurred while retrieving movies for Title:{request.Title} RunningTime:{request.RunningTime} YearOfRelease:{request.YearOfRelease}");
-                return Enumerable.Empty<MoviesResponse>();
+                logger.LogError(dbException, $"Error occurred while retrieving movies for Title:{request.Title} RunningTime:{request.RunningTime.Value} YearOfRelease:{request.YearOfRelease.Value}");
+                return new GetMoviesByCriteriaResponse
+                {
+                    Status = ResponseStatus.Fail,
+                    Movies = Enumerable.Empty<MoviesResponse>()
+                };
             }
         }
 
@@ -123,7 +138,7 @@ namespace WheelMovies.Business.Implementation
             }
         }
 
-        public async Task<AddUpdateStatus> AddOrUpdateUserRatingForMovieAsync(int movieId,
+        public async Task<ResponseStatus> AddOrUpdateUserRatingForMovieAsync(int movieId,
             AddUpdateUserRatingRequest addUpdateUserRatingRequest)
         {
             try
@@ -149,37 +164,37 @@ namespace WheelMovies.Business.Implementation
                     this.moviesRepository.MovieRatings.Update(movieRating);
                 }
 
-                return await this.moviesRepository.SaveChangesAsync() > 0 ? AddUpdateStatus.Success : AddUpdateStatus.Fail;
+                return await this.moviesRepository.SaveChangesAsync() > 0 ? ResponseStatus.Success : ResponseStatus.Fail;
             }
             catch (DbException dbException)
             {
                 logger.LogError(dbException, $"Error while adding/updating rating for the movie");
-                return AddUpdateStatus.Fail;
+                return ResponseStatus.Fail;
             }
         }
 
-        private async Task<(bool isValid, AddUpdateStatus addUpdateStatus)> ValidateAddUpdateMovieRatingRequest
+        private async Task<(bool isValid, ResponseStatus addUpdateStatus)> ValidateAddUpdateMovieRatingRequest
             (int movieId, AddUpdateUserRatingRequest request)
         {
             var movieExists = await moviesRepository.Movies.AnyAsync(mr => mr.Id.Equals(movieId));
             if (!movieExists)
             {
-                return (false, AddUpdateStatus.MovieOrUserNotFound);
+                return (false, ResponseStatus.NotFound);
             }
 
             var userExists = await moviesRepository.Users.AnyAsync(u => u.Id.Equals(request.UserId));
             if (!userExists)
             {
-                return (false, AddUpdateStatus.MovieOrUserNotFound);
+                return (false, ResponseStatus.NotFound);
             }
 
             if (!(request.Rating >= 1 && request.Rating <= 5))
             {
-                return (false, AddUpdateStatus.InvalidRating);
+                return (false, ResponseStatus.Invalid);
             }
 
             // addUpdateStatus = default;
-            return (true, default(AddUpdateStatus));
+            return (true, default(ResponseStatus));
         }
 
         private static double Average(ICollection<MovieRating> movieRating)

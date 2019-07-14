@@ -6,10 +6,10 @@ namespace WheelMovies.Business.Interfaces
 {
     public interface IMovieService
     {
-        Task<AddUpdateStatus> AddOrUpdateUserRatingForMovieAsync(int movieId, 
+        Task<ResponseStatus> AddOrUpdateUserRatingForMovieAsync(int movieId, 
             AddUpdateUserRatingRequest addUpdateUserRatingRequest);
 
-        Task<IEnumerable<MoviesResponse>> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request);
+        Task<GetMoviesByCriteriaResponse> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request);
 
         Task<IEnumerable<MoviesResponse>> GetTop5MmoviesForUserAsync(int userId);
 
