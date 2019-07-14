@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace WheelMovies.Repository.Models
 {
@@ -12,6 +11,7 @@ namespace WheelMovies.Repository.Models
 
         public int Id { get; set; }
         public string Name { get; set; }
+        public byte[] RowVersion { get; set; }
 
         public virtual ICollection<MovieGenre> MovieGenre { get; set; }
     }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WheelMovies.Business.DTO
+﻿namespace WheelMovies.Business.DTO
 {
     public class MoviesResponse
     {

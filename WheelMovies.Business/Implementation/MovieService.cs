@@ -23,6 +23,10 @@ namespace WheelMovies.Business.Implementation
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Returns movies that pass certain filter criteria provided by consumer.
+        /// At least one filter criteria should be provided by the caller, else the api returns an Invalid status.
+        /// </summary>
         public async Task<GetMoviesByCriteriaResponse> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request)
         {
             try
@@ -69,6 +73,11 @@ namespace WheelMovies.Business.Implementation
             }
         }
 
+        /// <summary>
+        /// Returns top 5 movies based on total user average ratings.
+        /// In case of a rating draw, (e.g. 2 movies have 3.768 average rating) return them by 
+        /// ascending title alphabetical order.
+        /// </summary>
         public async Task<IEnumerable<MoviesResponse>> GetTop5MoviesAsync()
         {
             try
@@ -106,6 +115,11 @@ namespace WheelMovies.Business.Implementation
             }   
         }
 
+        /// <summary>
+        /// Returns top 5 movies based on the highest ratings given by a specific user; 
+        /// In case of a rating draw(e.g.user scored 5 for 2 movies) return them by ascending title
+        /// alphabetical order.
+        /// </summary
         public async Task<IEnumerable<MoviesResponse>> GetTop5MoviesForUserAsync(int userId)
         {
             try
@@ -138,6 +152,11 @@ namespace WheelMovies.Business.Implementation
             }
         }
 
+        /// <summary>
+        /// Add a rating to a movie for a certain user.
+        /// The rating must be an integer between 1 and 5.
+        /// If the user already had a rating for that movie, the old rating should be updated to the new value.
+        /// </summary>
         public async Task<ResponseStatus> AddOrUpdateUserRatingForMovieAsync(int movieId,
             AddUpdateUserRatingRequest addUpdateUserRatingRequest)
         {
@@ -193,7 +212,6 @@ namespace WheelMovies.Business.Implementation
                 return (false, ResponseStatus.Invalid);
             }
 
-            // addUpdateStatus = default;
             return (true, default(ResponseStatus));
         }
 
