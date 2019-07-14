@@ -46,7 +46,7 @@ namespace WheelMovies.Controllers
             if (!userId.HasValue)
                 return BadRequest("User id not specified in the request.");
 
-            var movies = await movieService.GetTop5MmoviesForUserAsync(userId.Value);
+            var movies = await movieService.GetTop5MoviesForUserAsync(userId.Value);
             if (!movies.Any())
                 return NotFound("No movies found");
 

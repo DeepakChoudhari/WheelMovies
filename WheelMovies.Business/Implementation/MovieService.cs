@@ -27,7 +27,7 @@ namespace WheelMovies.Business.Implementation
         {
             try
             {
-                if (!request.Validate())
+                if (request == null || !request.Validate())
                     return new GetMoviesByCriteriaResponse
                     {
                         Status = ResponseStatus.Invalid,
@@ -39,8 +39,8 @@ namespace WheelMovies.Business.Implementation
                     .ThenInclude(navigationPropertyPath: mg => mg.Genre)
                     .Include(m => m.MovieRating)
                     .Where(m => m.Title.Equals(request.Title, StringComparison.InvariantCultureIgnoreCase)
-                             || m.YearOfRelease == request.YearOfRelease.Value
-                             || m.RunningTime == request.RunningTime.Value)
+                             || m.YearOfRelease == (request.YearOfRelease.HasValue ? request.YearOfRelease.Value : 0)
+                             || m.RunningTime == (request.RunningTime.HasValue ? request.RunningTime.Value : 0))
                     .Select(m =>
                     new MoviesResponse
                     {
@@ -106,7 +106,7 @@ namespace WheelMovies.Business.Implementation
             }   
         }
 
-        public async Task<IEnumerable<MoviesResponse>> GetTop5MmoviesForUserAsync(int userId)
+        public async Task<IEnumerable<MoviesResponse>> GetTop5MoviesForUserAsync(int userId)
         {
             try
             {
@@ -199,6 +199,9 @@ namespace WheelMovies.Business.Implementation
 
         private static double Average(ICollection<MovieRating> movieRating)
         {
+            if (!movieRating.Any())
+                return default(double);
+
             var avgVal = movieRating.Average(mr => mr.Rating);
 
             /*

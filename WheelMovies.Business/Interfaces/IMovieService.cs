@@ -11,7 +11,7 @@ namespace WheelMovies.Business.Interfaces
 
         Task<GetMoviesByCriteriaResponse> GetMoviesByCriteriaAsync(GetMoviesByCriteriaRequest request);
 
-        Task<IEnumerable<MoviesResponse>> GetTop5MmoviesForUserAsync(int userId);
+        Task<IEnumerable<MoviesResponse>> GetTop5MoviesForUserAsync(int userId);
 
         Task<IEnumerable<MoviesResponse>> GetTop5MoviesAsync();
     }
