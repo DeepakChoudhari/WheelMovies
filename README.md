@@ -13,5 +13,6 @@ A movie database API application.
 * API Health checks
 * Caching - Caching can be leveraged to cache the responses
 * Add more unit and integration tests to cover all the scenarios
+* Concurrency checks while saving data
 * API Versioning (via headers)
-* Implement HATEOAS - Hypermedia As Transfer Engine Of Application State 
+* Implement HATEOAS - Hypermedia As Transfer Engine Of Application State
