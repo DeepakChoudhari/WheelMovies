@@ -65,12 +65,17 @@ namespace WheelMovies.Business.Implementation
             catch (DbException dbException)
             {
                 logger.LogError(dbException, $"Error occurred while retrieving movies for Title:{request.Title} RunningTime:{request.RunningTime.Value} YearOfRelease:{request.YearOfRelease.Value}");
-                return new GetMoviesByCriteriaResponse
-                {
-                    Status = ResponseStatus.Fail,
-                    Movies = Enumerable.Empty<MoviesResponse>()
-                };
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"GetMoviesByCriteriaAsync() : Error occurred while retrieving movies for Title:{ request.Title} RunningTime: { request.RunningTime.Value} YearOfRelease: { request.YearOfRelease.Value}");
+            }
+
+            return new GetMoviesByCriteriaResponse
+            {
+                Status = ResponseStatus.Fail,
+                Movies = Enumerable.Empty<MoviesResponse>()
+            };
         }
 
         /// <summary>
