@@ -1,5 +1,5 @@
 # WheelMovies
-A movie database API application.
+A movie database Web API.
 
 #### Below is the tech stack used
 * Asp.Net Core 2.2
